@@ -12,6 +12,7 @@ rejections. To this end, it loads the email in the downloaded_emails folder
 
 # import all the relevant libraries 
 import os 
+import pandas
 
 # set current work directory to the one with this script.
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -24,5 +25,5 @@ from parse_one_email import parse_email
 downloaded_emails_path = os.path.dirname(os.getcwd()) + '/downloaded_emails'
 list_of_eml_files = [file for file in os.listdir(downloaded_emails_path) if file.endswith('.eml')]
 
-for email_name in list_of_eml_files:
-    parse_email(email_name, downloaded_emails_path)
+emails = [parse_email(downloaded_emails_path + '/' + email_name) for email_name in list_of_eml_files]
+dataframe_emails = pandas.DataFrame(emails)
