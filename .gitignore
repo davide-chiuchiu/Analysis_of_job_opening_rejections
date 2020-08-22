@@ -2,3 +2,5 @@
 downloaded_emails/
 
 .DS_Store
+
+python_code/__pycache__/

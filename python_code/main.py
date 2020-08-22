@@ -10,15 +10,19 @@ rejections. To this end, it loads the email in the downloaded_emails folder
 (not included in the git repository for privacy concerns).
 """
 
-# import all the relevant libraries
+# import all the relevant libraries 
 import os 
 
 # set current work directory to the one with this script.
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
+# import functions from auxiliary files
+from parse_one_email import parse_email
+
+
 # get list of files within the downloaded_emails folder
 downloaded_emails_path = os.path.dirname(os.getcwd()) + '/downloaded_emails'
 list_of_eml_files = [file for file in os.listdir(downloaded_emails_path) if file.endswith('.eml')]
 
-
-print(list_of_eml_files)
+for email_name in list_of_eml_files:
+    parse_email(email_name, downloaded_emails_path)
