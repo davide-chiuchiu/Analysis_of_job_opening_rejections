@@ -25,5 +25,6 @@ from parse_one_email import parse_email
 downloaded_emails_path = os.path.dirname(os.getcwd()) + '/downloaded_emails'
 list_of_eml_files = [file for file in os.listdir(downloaded_emails_path) if file.endswith('.eml')]
 
+# parse all emails and store their bodies and metadata in one dataframe
 emails = [parse_email(downloaded_emails_path + '/' + email_name) for email_name in list_of_eml_files]
-dataframe_emails = pandas.DataFrame(emails)
+dataframe_emails = pandas.DataFrame(emails).loc[:, ['Body', 'Date', 'From', 'Sender', 'Subject', 'Type']]
