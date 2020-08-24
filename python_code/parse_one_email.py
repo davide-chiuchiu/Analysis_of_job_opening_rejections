@@ -29,7 +29,7 @@ def parse_email(email_path):
         # email bod - done by detecting simple message and by accessing the
         # relevant part in multipart messages. HTML makrdowns are stripped.
         if email_parser.is_multipart():
-            # assume that first element is the body text
+            # find body using MIME with html and plain text as preferred defaults.
             email_dictionary['Body'] = email_parser.get_body(preferencelist=('html', 'plain')).get_content()
         else:
             email_dictionary['Body'] = email_parser.get_body().get_content()
@@ -40,4 +40,7 @@ def parse_email(email_path):
         # strip html markdowns
         email_dictionary['Body'] = bs4.BeautifulSoup(email_dictionary['Body'], "lxml").get_text() 
             
+        # strip newlines and multiple whitespaces 
+        email_dictionary['Body'] = re.sub('\n', ' ', email_dictionary['Body'])
+        email_dictionary['Body'] = re.sub(' +', ' ', email_dictionary['Body'])
     return email_dictionary
