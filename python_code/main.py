@@ -13,8 +13,10 @@ rejections. To this end, it loads the email in the downloaded_emails folder
 # import all the relevant libraries 
 import os 
 import pandas
-import re
+import numpy
 import nltk
+import seaborn
+import matplotlib.pyplot
 
 # set current work directory to the one with this script.
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -42,12 +44,15 @@ dataframe_emails['Body'] = dataframe_emails['Body'].str.replace('Personal inform
 dataframe_emails['Body'] = dataframe_emails['Body'].str.replace('View Message ©.+', '')
 
 
-# count number of sentences in the 
-dataframe_emails['Sencences count'] = dataframe_emails['Body'].apply(lambda x: len(nltk.tokenize.sent_tokenize(x)))
-dataframe_emails = dataframe_emails.sort_values('Sencences count', ascending=False)
+# count number of sentences in each email and show the distribution
+dataframe_emails['Sentences count'] = dataframe_emails['Body'].apply(lambda x: len(nltk.tokenize.sent_tokenize(x)))
+plot_lenght_distribution, (ax_box, ax_hist) = matplotlib.pyplot.subplots(2, sharex=True, gridspec_kw={"height_ratios": (.15, .85)})
+seaborn.boxplot(dataframe_emails['Sentences count'], ax = ax_box)
+seaborn.distplot(dataframe_emails['Sentences count'], kde = False, bins = numpy.arange(0.5, 30.5, 1), ax =ax_hist)
+plot_destination_file = os.path.dirname(os.getcwd()) + '/Latex_summary_report/message_length_distribution.eps'
+plot_lenght_distribution.savefig(plot_destination_file, format='eps')
 
 
-dataframe_emails.to_csv("temp.tsv", sep="\t")
 
 # get company name.
 #dataframe_emails['Company_tentative_1'] = dataframe_emails['From'].str.extract(pat = '@([^>^"]+)>?')

@@ -4,3 +4,11 @@ downloaded_emails/
 .DS_Store
 
 python_code/__pycache__/
+
+Latex_summary_report/message_length_distribution-eps-converted-to.pdf
+
+Latex_summary_report/Summary report.aux
+
+Latex_summary_report/Summary report.log
+
+Latex_summary_report/Summary report.synctex.gz
