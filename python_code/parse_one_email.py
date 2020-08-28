@@ -34,13 +34,12 @@ def parse_email(email_path):
         else:
             email_dictionary['Body'] = email_parser.get_body().get_content()
         
-        # strip html addresses from body
-        email_dictionary['Body'] = re.sub(r"http\S+", "", email_dictionary['Body'])
-        
         # strip html markdowns
         email_dictionary['Body'] = bs4.BeautifulSoup(email_dictionary['Body'], "lxml").get_text() 
             
-        # strip newlines and multiple whitespaces 
+        # strip newlines, tabs and multiple whitespaces 
         email_dictionary['Body'] = re.sub('\n', ' ', email_dictionary['Body'])
-        email_dictionary['Body'] = re.sub(' +', ' ', email_dictionary['Body'])
+        email_dictionary['Body'] = re.sub('\t', ' ', email_dictionary['Body'])
+        email_dictionary['Body'] = re.sub('\s+', ' ', email_dictionary['Body'])
+        email_dictionary['Body'] = re.sub('^ ', '', email_dictionary['Body'])
     return email_dictionary
