@@ -13,6 +13,8 @@ rejections. To this end, it loads the email in the downloaded_emails folder
 # import all the relevant libraries 
 import os 
 import pandas
+import re
+import nltk
 
 # set current work directory to the one with this script.
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -27,4 +29,25 @@ list_of_eml_files = [file for file in os.listdir(downloaded_emails_path) if file
 
 # parse all emails and store their bodies and metadata in one dataframe
 emails = [parse_email(downloaded_emails_path + '/' + email_name) for email_name in list_of_eml_files]
-dataframe_emails = pandas.DataFrame(emails).loc[:, ['Body', 'Date', 'From', 'Sender', 'Subject', 'Type']]
+dataframe_emails = pandas.DataFrame(emails).reindex(columns = ['Date', 'From', 'Subject', 'Body'])
+
+# strip quoted text from emails and linkedin random text
+# based on "From:"
+dataframe_emails['Body'] = dataframe_emails['Body'].str.replace('From:.+', '')
+# based on "Från: "
+dataframe_emails['Body'] = dataframe_emails['Body'].str.replace('Från:.+', '')
+# based on linkedIn "Personal information Name "
+dataframe_emails['Body'] = dataframe_emails['Body'].str.replace('Personal information Name .+', '')
+# based on linkedIn "View Message ©"
+dataframe_emails['Body'] = dataframe_emails['Body'].str.replace('View Message ©.+', '')
+
+
+# count number of sentences in the 
+dataframe_emails['Sencences count'] = dataframe_emails['Body'].apply(lambda x: len(nltk.tokenize.sent_tokenize(x)))
+dataframe_emails = dataframe_emails.sort_values('Sencences count', ascending=False)
+
+
+dataframe_emails.to_csv("temp.tsv", sep="\t")
+
+# get company name.
+#dataframe_emails['Company_tentative_1'] = dataframe_emails['From'].str.extract(pat = '@([^>^"]+)>?')
