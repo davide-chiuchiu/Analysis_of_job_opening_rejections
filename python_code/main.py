@@ -16,6 +16,7 @@ import pandas
 import numpy
 import nltk
 import seaborn
+import re
 import matplotlib.pyplot
 
 # set current work directory to the one with this script.
@@ -33,6 +34,10 @@ list_of_eml_files = [file for file in os.listdir(downloaded_emails_path) if file
 emails = [parse_email(downloaded_emails_path + '/' + email_name) for email_name in list_of_eml_files]
 dataframe_emails = pandas.DataFrame(emails).reindex(columns = ['Date', 'From', 'Subject', 'Body'])
 
+
+"""
+Clean email dataset
+"""
 # strip quoted text from emails and linkedin random text
 # based on "From:"
 dataframe_emails['Body'] = dataframe_emails['Body'].str.replace('From:.+', '')
@@ -43,7 +48,21 @@ dataframe_emails['Body'] = dataframe_emails['Body'].str.replace('Personal inform
 # based on linkedIn "View Message ©"
 dataframe_emails['Body'] = dataframe_emails['Body'].str.replace('View Message ©.+', '')
 
+# get company name.
+# get raw email and remove it from the 'From' field
+dataframe_emails['Sender_email'] = dataframe_emails['From'].str.extract(pat = '([\+\w\.-]+@[\w\.-]+)')
+dataframe_emails['From'] = dataframe_emails.apply(lambda x: re.sub('<{0,1}' + x['Sender_email'].replace('+', '\+') + '>{0,1}', '', x['From']), axis = 1)
 
+
+temp = dataframe_emails.reindex(columns = ['From', 'Sender_email'])
+
+#dataframe_emails['Company_tentative_1'] = dataframe_emails['From'].str.extract(pat = '@([^>^"]+)>?')
+
+
+
+"""
+Analysis of the cleaned dataset
+"""
 # count number of sentences in each email and show the distribution
 dataframe_emails['Sentences count'] = dataframe_emails['Body'].apply(lambda x: len(nltk.tokenize.sent_tokenize(x)))
 plot_lenght_distribution, (ax_box, ax_hist) = matplotlib.pyplot.subplots(2, sharex=True, gridspec_kw={"height_ratios": (.15, .85)})
@@ -54,5 +73,3 @@ plot_lenght_distribution.savefig(plot_destination_file, format='eps')
 
 
 
-# get company name.
-#dataframe_emails['Company_tentative_1'] = dataframe_emails['From'].str.extract(pat = '@([^>^"]+)>?')
