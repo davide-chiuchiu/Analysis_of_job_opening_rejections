@@ -16,9 +16,7 @@ import nltk
 import numpy
 import os 
 import pandas
-import scipy
 import seaborn
-import sklearn
 
 
 # set current work directory to the one with this script.
@@ -56,9 +54,21 @@ dataframe_emails['Sender_email'] = dataframe_emails['From'].str.extract(pat = '(
 """
 label emails
 """
-# group mail together based on From information
-dataframe_emails['grouped_From'] = cluster_emails_by_From(dataframe_emails)
+# group mail together based on From information 
+# 0.7 and the current extra tikens to remove do a decent (although improvable) job
+extra_punctuation = ['"', '``', "''"]
+email_domains = ['co', 'com', 'eu', 'io', 'it', 'net', 'se', 'uk']
+buzzwords = ['teamtailor', 'email', 'mail', 'noreply', 'jobvite', 
+             'no-reply', 'recruiting', 'Team', 'GmbH', 'lever', 
+             'linkedin', 'people', 'careers', 'notification', 
+             'system', 'successfactor']
+extra_tokens_to_remove = extra_punctuation + email_domains + buzzwords
+dataframe_emails['grouped_From'] = cluster_emails_by_From(dataframe_emails, 0.7, extra_tokens_to_remove = extra_tokens_to_remove)
 
+for i in numpy.sort(dataframe_emails['grouped_From'].unique()):
+    print(i)
+    print(dataframe_emails[dataframe_emails['grouped_From'] == i]['From'])
+    print('')
 
 
 """
