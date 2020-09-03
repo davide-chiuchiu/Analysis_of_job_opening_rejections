@@ -55,7 +55,8 @@ dataframe_emails['Sender_email'] = dataframe_emails['From'].str.extract(pat = '(
 label emails
 """
 # group mail together based on From information 
-# 0.7 and the current extra tikens to remove do a decent (although improvable) job
+# A 0.6 threshold for the three cut, use of 1-grams and the current extra
+# tokens to remove do a decent (although improvable) job
 extra_punctuation = ['"', '``', "''"]
 email_domains = ['co', 'com', 'eu', 'io', 'it', 'net', 'se', 'uk']
 buzzwords = ['teamtailor', 'email', 'mail', 'noreply', 'jobvite', 
@@ -63,7 +64,7 @@ buzzwords = ['teamtailor', 'email', 'mail', 'noreply', 'jobvite',
              'linkedin', 'people', 'careers', 'notification', 
              'system', 'successfactor']
 extra_tokens_to_remove = extra_punctuation + email_domains + buzzwords
-dataframe_emails['grouped_From'] = cluster_emails_by_From(dataframe_emails, 0.7, extra_tokens_to_remove = extra_tokens_to_remove)
+dataframe_emails['grouped_From'] = cluster_emails_by_From(dataframe_emails, 0.6, extra_tokens_to_remove = extra_tokens_to_remove)
 
 for i in numpy.sort(dataframe_emails['grouped_From'].unique()):
     print(i)
