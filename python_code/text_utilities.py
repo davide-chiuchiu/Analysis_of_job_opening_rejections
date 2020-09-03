@@ -5,40 +5,34 @@ Created on Tue Sep  1 13:16:18 2020
 
 @author: dabol99
 
-This files contains functions that are useful to process strings for NLTK 
-applications. 
+This files contains functions that are useful to preprocess strings for nltk 
+and to build document embeddings.
 """
 
 # import modules
 import nltk
-import scipy
 import sklearn
 import sklearn.cluster
 import string
 
+
+
+
 """
-This function wraps the pre-processing and clustering operations to perform on
-the From field in the dataframe_emails. 
+This wrapper builds the tfidf_embedded_corpus matrix with the corresponding 
+embedding_labels from the collection of strings stored at column_label in
+dataframe. The function preprocess the  collection of strings by removing stopwords,
+punctuation and extra_tokens_to_remove
 """
-def cluster_emails_by_From(dataframe_emails, cut_distance, metric = 'cosine', method = 'complete', extra_tokens_to_remove = None):
+def build_tfidf_embedding_from_dataframe(dataframe, column_label, extra_tokens_to_remove = None):
     # create corpus by removing removing stopwords, punctuation symbols and extra_tokens_to_remove
-    corpus = dataframe_emails.apply(lambda x: preprocess_sender_info_for_nltk(x['From'], extra_tokens_to_remove) , axis = 1).tolist()
-
+    corpus = dataframe.apply(lambda x: preprocess_corpus(x[column_label], extra_tokens_to_remove) , axis = 1).tolist()
+    
     # embed corpus as tfidf matrix    
-    tfidf_vectorizer = sklearn.feature_extraction.text.TfidfVectorizer(ngram_range=(1,2))
-    tfidf_vectorizer.fit(corpus)
-    embedded_processed_From = tfidf_vectorizer.transform(corpus).toarray()
-    
-    # create dendrogram from dense representation of embedded_processed_From
-    hierarchical_clustering = scipy.cluster.hierarchy.linkage(embedded_processed_From, metric = metric, method = method)
-    scipy.cluster.hierarchy.dendrogram(hierarchical_clustering)
-    
-    # cluster email senders based on distance in dendrogram
-    clustering_strategy = sklearn.cluster.AgglomerativeClustering(n_clusters = None, compute_full_tree = True, distance_threshold =  cut_distance, affinity = metric, linkage = method)
-    clustering_strategy.fit(embedded_processed_From)
+    tfidf_embedded_corpus, embedding_labels = build_tfidf_embedding_from_corpus(corpus)
 
-    return clustering_strategy.labels_
-    
+    return tfidf_embedded_corpus, embedding_labels
+
 
 
 
@@ -46,8 +40,7 @@ def cluster_emails_by_From(dataframe_emails, cut_distance, metric = 'cosine', me
 This function performs tokenize the input string text while it removes all 
 stopwords and punctuation symbols.
 """
-def preprocess_sender_info_for_nltk(text, extra_tokens_to_remove = None ):
-    
+def preprocess_corpus(text, extra_tokens_to_remove = None ):
     # create stopwords and punctuation signs to remove based on english stopwords,
     # punctuatio and extra_tokens_to_remove
     if extra_tokens_to_remove == None:
@@ -62,3 +55,21 @@ def preprocess_sender_info_for_nltk(text, extra_tokens_to_remove = None ):
     tokenized_text_without_stopwords = " ".join([word for word in tokenized_text if not word in stopset])
 
     return tokenized_text_without_stopwords
+
+
+
+
+"""
+This function performs the tfidf embedding of a corpus using ngrams in ngram_range
+and then it returns the tfidf matrix of the corpus.
+"""
+def build_tfidf_embedding_from_corpus(corpus, ngram_range = (1,1)):
+    # embed corpus as tfidf matrix    
+    tfidf_vectorizer = sklearn.feature_extraction.text.TfidfVectorizer(ngram_range = ngram_range)
+    tfidf_vectorizer.fit(corpus)
+    
+    # extract tfidf embedding as sparse matrix, and extract embedding labels
+    embedded_corpus = tfidf_vectorizer.transform(corpus)
+    embedding_labels = tfidf_vectorizer.get_feature_names()
+    
+    return embedded_corpus, embedding_labels

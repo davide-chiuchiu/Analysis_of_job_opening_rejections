@@ -24,7 +24,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # import functions from auxiliary files
 from parse_one_email import parse_email
-from text_utilities import cluster_emails_by_From
+from cluster_emails_by_From import cluster_emails_by_From
 
 # get list of files within the downloaded_emails folder
 downloaded_emails_path = os.path.dirname(os.getcwd()) + '/downloaded_emails'
