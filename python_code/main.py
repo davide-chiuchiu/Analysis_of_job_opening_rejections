@@ -15,7 +15,6 @@ import matplotlib.pyplot
 import nltk
 import numpy
 import os 
-import pandas
 import seaborn
 
 
@@ -23,33 +22,12 @@ import seaborn
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # import functions from auxiliary files
-from parse_one_email import parse_email
+from build_email_dataframe import build_email_dataframe
 from cluster_emails_by_From import cluster_emails_by_From
 
-# get list of files within the downloaded_emails folder
+# build dataframe of emails from database of stored emails
 downloaded_emails_path = os.path.dirname(os.getcwd()) + '/downloaded_emails'
-list_of_eml_files = [file for file in os.listdir(downloaded_emails_path) if file.endswith('.eml')]
-
-# parse all emails and store their bodies and metadata in one dataframe
-emails = [parse_email(downloaded_emails_path + '/' + email_name) for email_name in list_of_eml_files]
-dataframe_emails = pandas.DataFrame(emails).reindex(columns = ['Date', 'From', 'Subject', 'Body'])
-
-"""
-Clean email dataset
-"""
-# strip quoted text from emails and linkedin random text
-# based on "From:"
-dataframe_emails['Body'] = dataframe_emails['Body'].str.replace('From:.+', '')
-# based on "Från: "
-dataframe_emails['Body'] = dataframe_emails['Body'].str.replace('Från:.+', '')
-# based on linkedIn "Personal information Name "
-dataframe_emails['Body'] = dataframe_emails['Body'].str.replace('Personal information Name .+', '')
-# based on linkedIn "View Message ©"
-dataframe_emails['Body'] = dataframe_emails['Body'].str.replace('View Message ©.+', '')
-
-# get raw email and store it into a new field
-dataframe_emails['Sender_email'] = dataframe_emails['From'].str.extract(pat = '([\+\w\.-]+@[\w\.-]+)')
-
+dataframe_emails = build_email_dataframe(downloaded_emails_path)
 
 """
 label emails
@@ -70,6 +48,7 @@ for i in numpy.sort(dataframe_emails['grouped_From'].unique()):
     print(i)
     print(dataframe_emails[dataframe_emails['grouped_From'] == i]['From'])
     print('')
+
 
 
 """

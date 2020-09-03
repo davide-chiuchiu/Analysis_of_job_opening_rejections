@@ -9,7 +9,6 @@ on their From field
 """
 import sklearn
 import scipy
-
 from text_utilities import build_tfidf_embedding_from_dataframe
 
 
