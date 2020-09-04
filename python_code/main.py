@@ -15,7 +15,9 @@ import matplotlib.pyplot
 import nltk
 import numpy
 import os 
+import pandas
 import seaborn
+import sklearn
 
 
 # set current work directory to the one with this script.
@@ -24,6 +26,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 # import functions from auxiliary files
 from build_email_dataframe import build_email_dataframe
 from cluster_emails_by_From import cluster_emails_by_From
+from text_utilities import build_tfidf_embedding_from_dataframe
 
 # build dataframe of emails from database of stored emails
 downloaded_emails_path = os.path.dirname(os.getcwd()) + '/downloaded_emails'
@@ -48,6 +51,27 @@ for i in numpy.sort(dataframe_emails['grouped_From'].unique()):
     print(i)
     print(dataframe_emails[dataframe_emails['grouped_From'] == i]['From'])
     print('')
+
+# lable emails by body content
+# create tfidf embedding of the email bodies
+tfidf_embedded_Bodies, embedding_Bodies_labels = build_tfidf_embedding_from_dataframe(dataframe_emails, 'Body', ngram_range = (1,2))
+
+# inspect tfidf embedding
+tfidf_dataframe = pandas.DataFrame(tfidf_embedded_Bodies.toarray(), columns = embedding_Bodies_labels)
+
+# perform nmf decomposition
+NMF_model = sklearn.decomposition.NMF(n_components = 3, init = 'nndsvd', random_state = 0)
+pattern_coefficients = NMF_model.fit_transform(tfidf_embedded_Bodies)
+linguistic_patterns = pandas.DataFrame(NMF_model.components_, columns = embedding_Bodies_labels).transpose()
+
+# identify topics of linguistic patterns
+for i in linguistic_patterns.columns:
+    temp = linguistic_patterns[i].sort_values(ascending = False)
+    print('pattern ' + str(i))
+    print(temp.head(n = 10))
+    print('')
+
+    
 
 
 

@@ -23,6 +23,9 @@ def build_email_dataframe(downloaded_emails_path):
     emails = [parse_email(downloaded_emails_path + '/' + email_name) for email_name in list_of_eml_files]
     dataframe_emails = pandas.DataFrame(emails).reindex(columns = ['Date', 'From', 'Subject', 'Body'])
 
+    # get raw email and store it into a new field
+    dataframe_emails['Sender_email'] = dataframe_emails['From'].str.extract(pat = '([\+\w\.-]+@[\w\.-]+)')
+
     # strip quoted text from emails and linkedin random text
     # based on "From:"
     dataframe_emails['Body'] = dataframe_emails['Body'].str.replace('From:.+', '')
@@ -33,7 +36,5 @@ def build_email_dataframe(downloaded_emails_path):
     # based on linkedIn "View Message ©"
     dataframe_emails['Body'] = dataframe_emails['Body'].str.replace('View Message ©.+', '')
     
-    # get raw email and store it into a new field
-    dataframe_emails['Sender_email'] = dataframe_emails['From'].str.extract(pat = '([\+\w\.-]+@[\w\.-]+)')
-
+ 
     return dataframe_emails

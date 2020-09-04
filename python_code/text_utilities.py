@@ -11,6 +11,7 @@ and to build document embeddings.
 
 # import modules
 import nltk
+import re
 import sklearn
 import sklearn.cluster
 import string
@@ -24,12 +25,12 @@ embedding_labels from the collection of strings stored at column_label in
 dataframe. The function preprocess the  collection of strings by removing stopwords,
 punctuation and extra_tokens_to_remove
 """
-def build_tfidf_embedding_from_dataframe(dataframe, column_label, extra_tokens_to_remove = None):
+def build_tfidf_embedding_from_dataframe(dataframe, column_label, extra_tokens_to_remove = None, ngram_range = (1,1), remove_numbers = True):
     # create corpus by removing removing stopwords, punctuation symbols and extra_tokens_to_remove
-    corpus = dataframe.apply(lambda x: preprocess_corpus(x[column_label], extra_tokens_to_remove) , axis = 1).tolist()
+    corpus = dataframe.apply(lambda x: preprocess_corpus(x[column_label], extra_tokens_to_remove, remove_numbers = remove_numbers) , axis = 1).tolist()
     
     # embed corpus as tfidf matrix    
-    tfidf_embedded_corpus, embedding_labels = build_tfidf_embedding_from_corpus(corpus)
+    tfidf_embedded_corpus, embedding_labels = build_tfidf_embedding_from_corpus(corpus, ngram_range = ngram_range)
 
     return tfidf_embedded_corpus, embedding_labels
 
@@ -40,7 +41,11 @@ def build_tfidf_embedding_from_dataframe(dataframe, column_label, extra_tokens_t
 This function performs tokenize the input string text while it removes all 
 stopwords and punctuation symbols.
 """
-def preprocess_corpus(text, extra_tokens_to_remove = None ):
+def preprocess_corpus(text, extra_tokens_to_remove = None, remove_numbers = True):
+    # remove numbers from text
+    if remove_numbers == True:
+        text = re.sub('[0-9]', '', text)
+    
     # create stopwords and punctuation signs to remove based on english stopwords,
     # punctuatio and extra_tokens_to_remove
     if extra_tokens_to_remove == None:
@@ -52,7 +57,8 @@ def preprocess_corpus(text, extra_tokens_to_remove = None ):
     tokenized_text = nltk.tokenize.word_tokenize(text.lower().replace('.', ' '))
 
     # remove stopwords from tokenized text
-    tokenized_text_without_stopwords = " ".join([word for word in tokenized_text if not word in stopset])
+    stemmer = nltk.stem.lancaster.LancasterStemmer()
+    tokenized_text_without_stopwords = " ".join([stemmer.stem(word) for word in tokenized_text if not word in stopset])
 
     return tokenized_text_without_stopwords
 
