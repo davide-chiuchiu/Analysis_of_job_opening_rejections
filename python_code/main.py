@@ -71,9 +71,16 @@ for i in linguistic_patterns.columns:
     print(temp.head(n = 10))
     print('')
 
-    
+# cluster body contents with kmeans rather than NMF
+    KMEans_model = sklearn.cluster.KMeans(n_clusters = 3, n_init= 100, random_state = 0)
+    H = KMEans_model.fit_transform(tfidf_embedded_Bodies)
+    topics = pandas.DataFrame(KMEans_model.cluster_centers_, columns = embedding_Bodies_labels).transpose()
 
-
+for i in topics:
+    temp = linguistic_patterns[i].sort_values(ascending = False)
+    print('pattern ' + str(i))
+    print(temp.head(n = 10))
+    print('')
 
 """
 Analysis of the cleaned dataset
