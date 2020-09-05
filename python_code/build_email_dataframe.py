@@ -5,7 +5,7 @@ Created on Thu Sep  3 17:39:30 2020
 
 @author: dabol99
 
-This file contains the function that builds a dataframe from the email collection
+This file contains the functions that builds a dataframe from the email collection
 stored in downloaded_emails_path
 """
 
@@ -15,13 +15,49 @@ import pandas
 from parse_one_email import parse_email
 
 
-def build_email_dataframe(downloaded_emails_path):
-    # build list of email in downloaded_emails_path
-    list_of_eml_files = [file for file in os.listdir(downloaded_emails_path) if file.endswith('.eml')]
+# set current work directory to the one with this script.
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
+
+"""
+This function takes the emails in subfolder from downloaded emails_path, and 
+it stores their relevant content in partiak_dataframe_emails. The function
+also labels the emails based on their subffolder origin
+"""
+def build_email_dataframe_from_subfolder(downloaded_emails_path, subfolder):
+    # build subfolder directory
+    email_subfolder_path = downloaded_emails_path + '/' + subfolder
+
+    # build list of email in email_subfolder_path
+    list_of_eml_files = [file for file in os.listdir(email_subfolder_path) if file.endswith('.eml')]
 
     # parse all emails and store their bodies and metadata in one dataframe
-    emails = [parse_email(downloaded_emails_path + '/' + email_name) for email_name in list_of_eml_files]
-    dataframe_emails = pandas.DataFrame(emails).reindex(columns = ['Date', 'From', 'Subject', 'Body'])
+    emails = [parse_email(email_subfolder_path + '/' + email_name) for email_name in list_of_eml_files]
+    partial_dataframe_emails = pandas.DataFrame(emails).reindex(columns = ['Date', 'From', 'Subject', 'Body'])
+    
+    # add labeling to emails
+    partial_dataframe_emails['Email_type'] = subfolder 
+    
+    return partial_dataframe_emails
+
+
+
+
+"""
+This function builds a dataframe from the email collection in downloaded_emails_path
+and it labels them based on the subfolders in downloaded_emails_path  where 
+they are stored. The function also implents a few filtering options to clean 
+the email contents
+"""
+def build_email_dataframe(downloaded_emails_path):
+    # build list of subdirectories within downloaded_emails_path
+    list_of_subdirectories = [subdirectory for subdirectory in os.listdir(downloaded_emails_path) if not subdirectory.startswith('.')]
+
+    # create list of dataframes with emails from each subdirectory
+    partial_email_dataframes = [build_email_dataframe_from_subfolder(downloaded_emails_path, subdirectory) for subdirectory in list_of_subdirectories]
+
+    # merge partial email dataframes in one single dataframe
+    dataframe_emails = pandas.concat(partial_email_dataframes).reset_index().reindex(columns = ['Date', 'From', 'Subject', 'Body', 'Email_type'])
 
     # get raw email and store it into a new field
     dataframe_emails['Sender_email'] = dataframe_emails['From'].str.extract(pat = '([\+\w\.-]+@[\w\.-]+)')

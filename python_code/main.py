@@ -52,35 +52,35 @@ for i in numpy.sort(dataframe_emails['grouped_From'].unique()):
     print(dataframe_emails[dataframe_emails['grouped_From'] == i]['From'])
     print('')
 
-# lable emails by body content
-# create tfidf embedding of the email bodies
-tfidf_embedded_Bodies, embedding_Bodies_labels = build_tfidf_embedding_from_dataframe(dataframe_emails, 'Body', ngram_range = (1,2))
+# # lable emails by body content
+# # create tfidf embedding of the email bodies
+# tfidf_embedded_Bodies, embedding_Bodies_labels = build_tfidf_embedding_from_dataframe(dataframe_emails, 'Body', ngram_range = (1,2))
 
-# inspect tfidf embedding
-tfidf_dataframe = pandas.DataFrame(tfidf_embedded_Bodies.toarray(), columns = embedding_Bodies_labels)
+# # inspect tfidf embedding
+# tfidf_dataframe = pandas.DataFrame(tfidf_embedded_Bodies.toarray(), columns = embedding_Bodies_labels)
 
-# perform nmf decomposition
-NMF_model = sklearn.decomposition.NMF(n_components = 3, init = 'nndsvd', random_state = 0)
-pattern_coefficients = NMF_model.fit_transform(tfidf_embedded_Bodies)
-linguistic_patterns = pandas.DataFrame(NMF_model.components_, columns = embedding_Bodies_labels).transpose()
+# # perform nmf decomposition
+# NMF_model = sklearn.decomposition.NMF(n_components = 3, init = 'nndsvd', random_state = 0)
+# pattern_coefficients = NMF_model.fit_transform(tfidf_embedded_Bodies)
+# linguistic_patterns = pandas.DataFrame(NMF_model.components_, columns = embedding_Bodies_labels).transpose()
 
-# identify topics of linguistic patterns
-for i in linguistic_patterns.columns:
-    temp = linguistic_patterns[i].sort_values(ascending = False)
-    print('pattern ' + str(i))
-    print(temp.head(n = 10))
-    print('')
+# # identify topics of linguistic patterns
+# for i in linguistic_patterns.columns:
+#     temp = linguistic_patterns[i].sort_values(ascending = False)
+#     print('pattern ' + str(i))
+#     print(temp.head(n = 10))
+#     print('')
 
-# cluster body contents with kmeans rather than NMF
-    KMEans_model = sklearn.cluster.KMeans(n_clusters = 3, n_init= 100, random_state = 0)
-    H = KMEans_model.fit_transform(tfidf_embedded_Bodies)
-    topics = pandas.DataFrame(KMEans_model.cluster_centers_, columns = embedding_Bodies_labels).transpose()
+# # cluster body contents with kmeans rather than NMF
+#     KMEans_model = sklearn.cluster.KMeans(n_clusters = 3, n_init= 100, random_state = 0)
+#     H = KMEans_model.fit_transform(tfidf_embedded_Bodies)
+#     topics = pandas.DataFrame(KMEans_model.cluster_centers_, columns = embedding_Bodies_labels).transpose()
 
-for i in topics:
-    temp = linguistic_patterns[i].sort_values(ascending = False)
-    print('pattern ' + str(i))
-    print(temp.head(n = 10))
-    print('')
+# for i in topics:
+#     temp = linguistic_patterns[i].sort_values(ascending = False)
+#     print('pattern ' + str(i))
+#     print(temp.head(n = 10))
+#     print('')
 
 """
 Analysis of the cleaned dataset
