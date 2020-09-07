@@ -18,6 +18,8 @@ import os
 import pandas
 import seaborn
 import sklearn
+import sklearn.ensemble
+import imblearn
 
 
 # set current work directory to the one with this script.
@@ -52,12 +54,49 @@ for i in numpy.sort(dataframe_emails['grouped_From'].unique()):
     print(dataframe_emails[dataframe_emails['grouped_From'] == i]['From'])
     print('')
 
-# # lable emails by body content
-# # create tfidf embedding of the email bodies
-# tfidf_embedded_Bodies, embedding_Bodies_labels = build_tfidf_embedding_from_dataframe(dataframe_emails, 'Body', ngram_range = (1,2))
+"""
+Prelimianry analysis
+"""
+# inspect imbalance between email types
+Email_type_distribution = dataframe_emails['Email_type'].value_counts(normalize = False)
 
-# # inspect tfidf embedding
-# tfidf_dataframe = pandas.DataFrame(tfidf_embedded_Bodies.toarray(), columns = embedding_Bodies_labels)
+email_type_distribution_figure, email_type_distribution_axis = matplotlib.pyplot.subplots()
+seaborn.countplot(x = 'Email_type', data = dataframe_emails, ax = email_type_distribution_axis)
+plot_destination_file = os.path.dirname(os.getcwd()) + '/Latex_summary_report/email_type_distribution.eps'
+email_type_distribution_figure.savefig(plot_destination_file, format='eps')
+
+"""
+Filter out feedback emails and produce a balanced dataset based on Email type
+"""
+# filter out feedback emails
+filtered_dataframe_emails = dataframe_emails[dataframe_emails['Email_type'] != 'Feedback']
+filtered_email_bodies = filtered_dataframe_emails.loc[:, filtered_dataframe_emails.columns != 'Email_type']
+filterer_email_types = filtered_dataframe_emails['Email_type']
+
+# define undersampling strategy and undersample to have a balanced dataset
+undersample_strategy = imblearn.under_sampling.RandomUnderSampler(sampling_strategy = 'majority', random_state = 0)
+undersampled_email_dataframe, undersampled_email_types = undersample_strategy.fit_resample(filtered_email_bodies, filterer_email_types)
+
+"""
+Train supervised model to predict Email_type from tfidf embedding of email bodies
+"""
+# create tfidf vectorizer for undersampled email bodies
+_, _, tfidf_body_vectorizer = build_tfidf_embedding_from_dataframe(undersampled_email_dataframe, 'Body', ngram_range = (1,2))
+
+# create test train split 
+[email_bodies_train, email_bodies_test, email_types_train, email_types_test] = sklearn.model_selection.train_test_split(undersampled_email_dataframe['Body'], undersampled_email_types, test_size = 0.2, random_state = 0, stratify =  undersampled_email_types)
+
+# create random forest classifier
+random_forest_classifier = sklearn.ensemble.RandomForestClassifier(n_estimators = 10)
+random_forest_classifier.fit(tfidf_body_vectorizer.transform(email_bodies_train), email_types_train)
+
+# evaluate confusion matrix performance of train dataset
+email_types_predicted = random_forest_classifier.predict(tfidf_body_vectorizer.transform(email_bodies_train))
+print('Confusion matrix train dataset')
+print(sklearn.metrics.confusion_matrix(email_types_train, email_types_predicted))
+print('Metrics report train dataset')
+print(sklearn.metrics.classification_report(email_types_train, email_types_predicted))
+
 
 # # perform nmf decomposition
 # NMF_model = sklearn.decomposition.NMF(n_components = 3, init = 'nndsvd', random_state = 0)
@@ -85,13 +124,15 @@ for i in numpy.sort(dataframe_emails['grouped_From'].unique()):
 """
 Analysis of the cleaned dataset
 """
-# count number of sentences in each email and show the distribution
+# count number of sentences in each email and show the distribution based on email types
 dataframe_emails['Sentences count'] = dataframe_emails['Body'].apply(lambda x: len(nltk.tokenize.sent_tokenize(x)))
-plot_lenght_distribution, (ax_box, ax_hist) = matplotlib.pyplot.subplots(2, sharex=True, gridspec_kw={"height_ratios": (.15, .85)})
-seaborn.boxplot(dataframe_emails['Sentences count'], ax = ax_box)
-seaborn.distplot(dataframe_emails['Sentences count'], kde = False, bins = numpy.arange(0.5, 30.5, 1), ax =ax_hist)
+#plot_lenght_distribution = seaborn.FacetGrid(dataframe_emails, hue = 'Email_type')
+#plot_lenght_distribution = plot_lenght_distribution.map(seaborn.box, 'Sentences count',  kde = False, bins = numpy.arange(0.5, 30.5, 1))
+
+email_length_distribution_figure, email_length_distribution_axis = matplotlib.pyplot.subplots()
+seaborn.boxplot(x = 'Sentences count', y = 'Email_type', data = dataframe_emails, ax = email_length_distribution_axis) 
 plot_destination_file = os.path.dirname(os.getcwd()) + '/Latex_summary_report/message_length_distribution.eps'
-plot_lenght_distribution.savefig(plot_destination_file, format='eps')
+email_length_distribution_figure.savefig(plot_destination_file, format='eps')
 
 
 

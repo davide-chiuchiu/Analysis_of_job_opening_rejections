@@ -21,18 +21,22 @@ import string
 
 """
 This wrapper builds the tfidf_embedded_corpus matrix with the corresponding 
-embedding_labels from the collection of strings stored at column_label in
-dataframe. The function preprocess the  collection of strings by removing stopwords,
-punctuation and extra_tokens_to_remove
+embedding_labels and embedder object from the collection of strings stored 
+at column_label in dataframe. The function preprocess the  collection of 
+strings by removing stopwords, punctuation and extra_tokens_to_remove
 """
 def build_tfidf_embedding_from_dataframe(dataframe, column_label, extra_tokens_to_remove = None, ngram_range = (1,1), remove_numbers = True):
     # create corpus by removing removing stopwords, punctuation symbols and extra_tokens_to_remove
     corpus = dataframe.apply(lambda x: preprocess_corpus(x[column_label], extra_tokens_to_remove, remove_numbers = remove_numbers) , axis = 1).tolist()
     
-    # embed corpus as tfidf matrix    
-    tfidf_embedded_corpus, embedding_labels = build_tfidf_embedding_from_corpus(corpus, ngram_range = ngram_range)
+    # build tfidf vectorizer object from function  
+    tfidf_vectorizer = build_tfidf_embedding_from_corpus(corpus, ngram_range = ngram_range)
 
-    return tfidf_embedded_corpus, embedding_labels
+    # extract tfidf embedding as sparse matrix, and extract embedding labels
+    tfidf_embedded_corpus = tfidf_vectorizer.transform(corpus)
+    embedding_labels = tfidf_vectorizer.get_feature_names()
+
+    return tfidf_embedded_corpus, embedding_labels, tfidf_vectorizer
 
 
 
@@ -67,15 +71,11 @@ def preprocess_corpus(text, extra_tokens_to_remove = None, remove_numbers = True
 
 """
 This function performs the tfidf embedding of a corpus using ngrams in ngram_range
-and then it returns the tfidf matrix of the corpus.
+and then it returns the tfidf embedder object.
 """
 def build_tfidf_embedding_from_corpus(corpus, ngram_range = (1,1)):
     # embed corpus as tfidf matrix    
     tfidf_vectorizer = sklearn.feature_extraction.text.TfidfVectorizer(ngram_range = ngram_range)
     tfidf_vectorizer.fit(corpus)
     
-    # extract tfidf embedding as sparse matrix, and extract embedding labels
-    embedded_corpus = tfidf_vectorizer.transform(corpus)
-    embedding_labels = tfidf_vectorizer.get_feature_names()
-    
-    return embedded_corpus, embedding_labels
+    return tfidf_vectorizer

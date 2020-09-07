@@ -25,7 +25,7 @@ of the hierarchical tree
 def cluster_emails_by_From(dataframe_emails, cut_distance, metric = 'cosine', method = 'complete', extra_tokens_to_remove = None, build_dendrogram = True):
     # create tfidf_embedded_corpus_From after removing stopwords, 
     # punctuation symbols and extra_tokens_to_remove
-    tfidf_embedded_corpus_From, _ = build_tfidf_embedding_from_dataframe(dataframe_emails, 'From', extra_tokens_to_remove = extra_tokens_to_remove)
+    tfidf_embedded_corpus_From, _, _ = build_tfidf_embedding_from_dataframe(dataframe_emails, 'From', extra_tokens_to_remove = extra_tokens_to_remove)
     
     # cast as dense matrix due to requirements of hierarchical clustering functions
     dense_tfidf_embedded_corpus_From  = tfidf_embedded_corpus_From.toarray()
