@@ -79,3 +79,13 @@ def build_tfidf_embedding_from_corpus(corpus, ngram_range = (1,1)):
     tfidf_vectorizer.fit(corpus)
     
     return tfidf_vectorizer
+
+
+"""
+This function uses the  CountVectorizer object word_counter to find the 20 most
+important keywords in corpus. 
+"""
+def find_keywords(corpus, word_counter):
+    word_counter.fit_transform(corpus)
+    
+    return list(word_counter.vocabulary_.keys())[0:20]
