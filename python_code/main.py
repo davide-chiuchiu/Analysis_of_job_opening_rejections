@@ -28,9 +28,10 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 # import functions from auxiliary files
 from build_email_dataframe import build_email_dataframe
 from cluster_emails_by_From import cluster_emails_by_From
-from text_utilities import build_tfidf_embedding_from_dataframe, find_keywords
+from text_utilities import preprocess_corpus, find_keywords
 
-# build dataframe of emails from database of stored emails
+# build dataframe of emails from database of stored emails. The building procedure 
+# remove numbers, and it stems the email bodies after tokenization
 downloaded_emails_path = os.path.dirname(os.getcwd()) + '/downloaded_emails'
 dataframe_emails = build_email_dataframe(downloaded_emails_path)
 
@@ -62,6 +63,8 @@ for i in list_common_words.index:
     print('Common words in ' + i + ' email type')
     print(list_common_words.loc[i])
     print('')
+
+
 
 
 # """

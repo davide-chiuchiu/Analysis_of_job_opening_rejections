@@ -42,7 +42,7 @@ def build_tfidf_embedding_from_dataframe(dataframe, column_label, extra_tokens_t
 
 
 """
-This function performs tokenize the input string text while it removes all 
+This function tokenizes and stems the input string text while it removes all 
 stopwords and punctuation symbols.
 """
 def preprocess_corpus(text, extra_tokens_to_remove = None, remove_numbers = True):

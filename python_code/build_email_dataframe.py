@@ -13,6 +13,7 @@ stored in downloaded_emails_path
 import os 
 import pandas
 from parse_one_email import parse_email
+from text_utilities import preprocess_corpus
 
 
 # set current work directory to the one with this script.
@@ -46,8 +47,8 @@ def build_email_dataframe_from_subfolder(downloaded_emails_path, subfolder):
 """
 This function builds a dataframe from the email collection in downloaded_emails_path
 and it labels them based on the subfolders in downloaded_emails_path  where 
-they are stored. The function also implents a few filtering options to clean 
-the email contents
+they are stored. The function also implents a few filtering options to strip 
+junk text from the email bodies, and to tokenize&stem the email bodies.
 """
 def build_email_dataframe(downloaded_emails_path):
     # build list of subdirectories within downloaded_emails_path
@@ -71,6 +72,10 @@ def build_email_dataframe(downloaded_emails_path):
     dataframe_emails['Body'] = dataframe_emails['Body'].str.replace('Personal information Name .+', '')
     # based on linkedIn "View Message ©"
     dataframe_emails['Body'] = dataframe_emails['Body'].str.replace('View Message ©.+', '')
+    
+    # Tokenize and stem email bodies with preprocess_corpus
+    dataframe_emails['Body'] = dataframe_emails.apply(lambda x: preprocess_corpus(x['Body']) , axis = 1)
+
     
  
     return dataframe_emails
