@@ -60,9 +60,6 @@ def build_email_dataframe(downloaded_emails_path):
     # merge partial email dataframes in one single dataframe
     dataframe_emails = pandas.concat(partial_email_dataframes).reset_index().reindex(columns = ['Date', 'From', 'Subject', 'Body', 'Email_type'])
 
-    # get raw email and store it into a new field
-    dataframe_emails['Sender_email'] = dataframe_emails['From'].str.extract(pat = '([\+\w\.-]+@[\w\.-]+)')
-
     # strip quoted text from emails and linkedin random text
     # based on "From:"
     dataframe_emails['Body'] = dataframe_emails['Body'].str.replace('From:.+', '')
@@ -74,8 +71,10 @@ def build_email_dataframe(downloaded_emails_path):
     dataframe_emails['Body'] = dataframe_emails['Body'].str.replace('View Message ©.+', '')
     
     # Tokenize and stem email bodies with preprocess_corpus
-    dataframe_emails['Body'] = dataframe_emails.apply(lambda x: preprocess_corpus(x['Body']) , axis = 1)
+    dataframe_emails['Stemmed Body'] = dataframe_emails.apply(lambda x: preprocess_corpus(x['Body']) , axis = 1)
 
+    # get raw email and store it into a new field
+    dataframe_emails['Sender_email'] = dataframe_emails['From'].str.extract(pat = '([\+\w\.-]+@[\w\.-]+)')
     
  
     return dataframe_emails

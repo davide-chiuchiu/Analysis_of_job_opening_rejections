@@ -57,7 +57,7 @@ email_length_distribution_figure.savefig(plot_destination_file, format='eps')
 # find keywords based on word count
 word_counter = sklearn.feature_extraction.text.CountVectorizer(stop_words = nltk.corpus.stopwords.words('english'), ngram_range=(1, 2))
 grouped_dataframe_emails = dataframe_emails.groupby('Email_type')
-list_common_words = grouped_dataframe_emails.apply(lambda x: find_keywords(x['Body'], word_counter))
+list_common_words = grouped_dataframe_emails.apply(lambda x: find_keywords(x['Stemmed Body'], word_counter))
 
 for i in list_common_words.index:
     print('Common words in ' + i + ' email type')
