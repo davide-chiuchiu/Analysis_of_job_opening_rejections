@@ -51,7 +51,7 @@ def preprocess_corpus(text, extra_tokens_to_remove = None, remove_numbers = True
         text = re.sub('[0-9]', '', text)
     
     # remove all special symbols from text
-    text = re.sub(r"[-()\_\"#/@;:<>{}\'`+=~|.!?,\[\]\*&\$\%]", "", text)
+    text = re.sub(r"[^A-Za-z0-9]+", " ", text)
 
     # create stopwords to remove based on english stopwords, and extra_tokens_to_remove
     if extra_tokens_to_remove == None:

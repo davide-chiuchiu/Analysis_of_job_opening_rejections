@@ -35,7 +35,7 @@ email type.
 """
 def save_keyword_wordclouds_of_email_types(word_frequencies_dataframe):
     # initialize wordcloud object
-    word_cloud_object = wordcloud.WordCloud(background_color = 'white', random_state = 0, max_words = 20)
+    word_cloud_object = wordcloud.WordCloud(background_color = 'white', random_state = 0, max_words = 30)
     # initialize figure and figure axis
     wordcloud_figure, wordcloud_axis = matplotlib.pyplot.subplots()
     for email_type in word_frequencies_dataframe.index:
