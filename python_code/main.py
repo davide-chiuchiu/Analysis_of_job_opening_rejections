@@ -11,15 +11,14 @@ rejections. To this end, it loads the email in the downloaded_emails folder
 """
 
 # import all the relevant libraries 
-import matplotlib.pyplot
-import nltk
 import numpy
+import nltk
 import os 
-import pandas
-import seaborn
 import sklearn
 import sklearn.ensemble
 import imblearn
+
+
 
 
 # set current work directory to the one with this script.
@@ -27,8 +26,10 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # import functions from auxiliary files
 from build_email_dataframe import build_email_dataframe
+
 from cluster_emails_by_From import cluster_emails_by_From
 from text_utilities import preprocess_corpus, find_keywords
+from plots import plot_email_type_distribution, save_keyword_wordclouds_of_email_types
 
 # build dataframe of emails from database of stored emails. The building procedure 
 # remove numbers, and it stems the email bodies after tokenization
@@ -41,51 +42,40 @@ Prelimianry analysis
 # inspect imbalance between email types
 Email_type_distribution = dataframe_emails['Email_type'].value_counts(normalize = False)
 
-email_type_distribution_figure, email_type_distribution_axis = matplotlib.pyplot.subplots()
-seaborn.countplot(x = 'Email_type', data = dataframe_emails, ax = email_type_distribution_axis)
-plot_destination_file = os.path.dirname(os.getcwd()) + '/Latex_summary_report/email_type_distribution.eps'
-email_type_distribution_figure.savefig(plot_destination_file, format='eps')
-
-# count number of sentences in each email and show the distribution based on email types
+# count number of sentences in each email and show the distribution based on email types and plot it 
 dataframe_emails['Sentences count'] = dataframe_emails['Body'].apply(lambda x: len(nltk.tokenize.sent_tokenize(x)))
+print(plot_email_type_distribution(dataframe_emails) )
 
-email_length_distribution_figure, email_length_distribution_axis = matplotlib.pyplot.subplots()
-seaborn.boxplot(x = 'Sentences count', y = 'Email_type', data = dataframe_emails, ax = email_length_distribution_axis) 
-plot_destination_file = os.path.dirname(os.getcwd()) + '/Latex_summary_report/message_length_distribution.eps'
-email_length_distribution_figure.savefig(plot_destination_file, format='eps')
-
-# find keywords based on word count
-word_counter = sklearn.feature_extraction.text.CountVectorizer(stop_words = nltk.corpus.stopwords.words('english'), ngram_range=(1, 2))
+# build word frequencies in each email type and the associated word clouds
 grouped_dataframe_emails = dataframe_emails.groupby('Email_type')
-list_common_words = grouped_dataframe_emails.apply(lambda x: find_keywords(x['Stemmed Body'], word_counter))
+word_frequencies_dataframe = grouped_dataframe_emails.apply(lambda x: nltk.probability.FreqDist(nltk.tokenize.word_tokenize(x['Stemmed Body'].str.cat(sep = ' '))))
+save_keyword_wordclouds_of_email_types(word_frequencies_dataframe)
 
-for i in list_common_words.index:
-    print('Common words in ' + i + ' email type')
-    print(list_common_words.loc[i])
+"""
+Identify distribution of rejection time
+"""
+# automatic clustering of company where I applied
+
+
+"""
+label emails
+"""
+# group mail together based on From information 
+# A 0.6 threshold for the three cut, use of 1-grams and the current extra
+# tokens to remove do a decent (although improvable) job
+extra_punctuation = ['"', '``', "''"]
+email_domains = ['co', 'com', 'eu', 'io', 'it', 'net', 'se', 'uk']
+buzzwords = ['teamtailor', 'email', 'mail', 'noreply', 'jobvite', 
+              'no-reply', 'recruiting', 'Team', 'GmbH', 'lever', 
+              'linkedin', 'people', 'careers', 'notification', 
+              'system', 'successfactor']
+extra_tokens_to_remove = extra_punctuation + email_domains + buzzwords
+dataframe_emails['grouped_From'] = cluster_emails_by_From(dataframe_emails, 0.6, extra_tokens_to_remove = extra_tokens_to_remove)
+
+for i in numpy.sort(dataframe_emails['grouped_From'].unique()):
+    print(i)
+    print(dataframe_emails[dataframe_emails['grouped_From'] == i]['From'])
     print('')
-
-
-
-
-# """
-# label emails
-# """
-# # group mail together based on From information 
-# # A 0.6 threshold for the three cut, use of 1-grams and the current extra
-# # tokens to remove do a decent (although improvable) job
-# extra_punctuation = ['"', '``', "''"]
-# email_domains = ['co', 'com', 'eu', 'io', 'it', 'net', 'se', 'uk']
-# buzzwords = ['teamtailor', 'email', 'mail', 'noreply', 'jobvite', 
-#              'no-reply', 'recruiting', 'Team', 'GmbH', 'lever', 
-#              'linkedin', 'people', 'careers', 'notification', 
-#              'system', 'successfactor']
-# extra_tokens_to_remove = extra_punctuation + email_domains + buzzwords
-# dataframe_emails['grouped_From'] = cluster_emails_by_From(dataframe_emails, 0.6, extra_tokens_to_remove = extra_tokens_to_remove)
-
-# for i in numpy.sort(dataframe_emails['grouped_From'].unique()):
-#     print(i)
-#     print(dataframe_emails[dataframe_emails['grouped_From'] == i]['From'])
-#     print('')
 
 
 

@@ -43,22 +43,24 @@ def build_tfidf_embedding_from_dataframe(dataframe, column_label, extra_tokens_t
 
 """
 This function tokenizes and stems the input string text while it removes all 
-stopwords and punctuation symbols.
+stopwords and punctuation symbols. 
 """
 def preprocess_corpus(text, extra_tokens_to_remove = None, remove_numbers = True):
     # remove numbers from text
     if remove_numbers == True:
         text = re.sub('[0-9]', '', text)
     
-    # create stopwords and punctuation signs to remove based on english stopwords,
-    # punctuatio and extra_tokens_to_remove
+    # remove all special symbols from text
+    text = re.sub(r"[-()\_\"#/@;:<>{}\'`+=~|.!?,\[\]\*&\$\%]", "", text)
+
+    # create stopwords to remove based on english stopwords, and extra_tokens_to_remove
     if extra_tokens_to_remove == None:
-        stopset = nltk.corpus.stopwords.words('english') + list(string.punctuation)
+        stopset = nltk.corpus.stopwords.words('english')
     else:
-        stopset = nltk.corpus.stopwords.words('english') + list(string.punctuation) + extra_tokens_to_remove    
+        stopset = nltk.corpus.stopwords.words('english') + extra_tokens_to_remove    
 
     # tokenize text (replacement of . into )
-    tokenized_text = nltk.tokenize.word_tokenize(text.lower().replace('.', ' '))
+    tokenized_text = nltk.tokenize.word_tokenize(text.lower())
 
     # remove stopwords from tokenized text
     stemmer = nltk.stem.lancaster.LancasterStemmer()
