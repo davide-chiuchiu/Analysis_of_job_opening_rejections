@@ -9,8 +9,19 @@ on their From field
 """
 import sklearn
 import scipy
-from text_utilities import build_tfidf_embedding_from_dataframe
+from text_utilities import build_tfidf_embedding_from_dataframe, identify_custom_buzzwords
 
+
+"""
+This wrapper computes the buzzwords from the From field stored as 
+from_field_as_corpus with identify_custom_buzzwords and it adds to them the
+extra_buzzwords
+"""
+def define_buzzwords_for_From_field(from_field_as_corpus, buzzword_quantile_treshold = 0.1, extra_buzzwords = []):    
+    # create automated list of buzzwords in 'Processed sender and subject'
+    automated_buzzwords, other_automated_buzzwords = identify_custom_buzzwords(from_field_as_corpus, buzzword_quantile_treshold)
+    buzzwords = automated_buzzwords + extra_buzzwords
+    return buzzwords
 
 
 

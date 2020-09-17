@@ -73,8 +73,8 @@ def build_email_dataframe(downloaded_emails_path):
     # Tokenize and stem email bodies with preprocess_corpus
     dataframe_emails['Stemmed Body'] = dataframe_emails.apply(lambda x: preprocess_corpus(x['Body']) , axis = 1)
 
-    # get raw email and store it into a new field
-    dataframe_emails['Sender_email'] = dataframe_emails['From'].str.extract(pat = '([\+\w\.-]+@[\w\.-]+)')
+    # Combine email sendes and email subject into one and then preprocess text
+    dataframe_emails['Processed sender and subject'] = dataframe_emails.apply(lambda x: preprocess_corpus(x['From'] + ' ' + x['Subject']) , axis = 1)
     
  
     return dataframe_emails

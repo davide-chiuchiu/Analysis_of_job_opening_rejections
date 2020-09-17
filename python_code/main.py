@@ -17,6 +17,7 @@ import os
 import sklearn
 import sklearn.ensemble
 import imblearn
+import pandas
 
 
 
@@ -27,10 +28,10 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 # import functions from auxiliary files
 from build_email_dataframe import build_email_dataframe
 
-from cluster_emails_by_From import cluster_emails_by_From
-from text_utilities import preprocess_corpus, find_keywords
-from plots import plot_email_type_distribution, save_keyword_wordclouds_of_email_types
-
+from cluster_emails_by_From import cluster_emails_by_From, define_buzzwords_for_From_field
+from text_utilities import compute_word_frequencies
+from plots import plot_email_type_distribution, plot_email_lengths_distribution
+from plots import save_keyword_wordclouds_of_email_types
 # build dataframe of emails from database of stored emails. The building procedure 
 # remove numbers, and it stems the email bodies after tokenization
 downloaded_emails_path = os.path.dirname(os.getcwd()) + '/downloaded_emails'
@@ -41,40 +42,31 @@ Prelimianry analysis
 """
 # inspect imbalance between email types
 Email_type_distribution = dataframe_emails['Email_type'].value_counts(normalize = False)
+print(plot_email_type_distribution(dataframe_emails))
+
 
 # count number of sentences in each email and show the distribution based on email types and plot it 
 dataframe_emails['Sentences count'] = dataframe_emails['Body'].apply(lambda x: len(nltk.tokenize.sent_tokenize(x)))
-print(plot_email_type_distribution(dataframe_emails) )
+plot_email_lengths_distribution(dataframe_emails)
+
 
 # build word frequencies in each email type and the associated word clouds
 grouped_dataframe_emails = dataframe_emails.groupby('Email_type')
-word_frequencies_dataframe = grouped_dataframe_emails.apply(lambda x: nltk.probability.FreqDist(nltk.tokenize.word_tokenize(x['Stemmed Body'].str.cat(sep = ' '))))
+word_frequencies_dataframe = grouped_dataframe_emails.apply(lambda x: compute_word_frequencies(x['Stemmed Body']))
 save_keyword_wordclouds_of_email_types(word_frequencies_dataframe)
 
 """
 Identify distribution of rejection time
 """
-# automatic clustering of company where I applied
+# build buzzwords from automated routines and some educated guess
+extra_buzzwords_guess = ['car', 'hir', 'jobvit', 'lev', 'system', 'successfact', 'team']
+buzzwords = define_buzzwords_for_From_field(dataframe_emails['Processed sender and subject'], extra_buzzwords = extra_buzzwords_guess)
+# cluster emails together based on the sender and subject information
+dataframe_emails['Indexed sender'] = cluster_emails_by_From(dataframe_emails, 0.5, method = "average", extra_tokens_to_remove = buzzwords)
 
-
-"""
-label emails
-"""
-# group mail together based on From information 
-# A 0.6 threshold for the three cut, use of 1-grams and the current extra
-# tokens to remove do a decent (although improvable) job
-extra_punctuation = ['"', '``', "''"]
-email_domains = ['co', 'com', 'eu', 'io', 'it', 'net', 'se', 'uk']
-buzzwords = ['teamtailor', 'email', 'mail', 'noreply', 'jobvite', 
-              'no-reply', 'recruiting', 'Team', 'GmbH', 'lever', 
-              'linkedin', 'people', 'careers', 'notification', 
-              'system', 'successfactor']
-extra_tokens_to_remove = extra_punctuation + email_domains + buzzwords
-dataframe_emails['grouped_From'] = cluster_emails_by_From(dataframe_emails, 0.6, extra_tokens_to_remove = extra_tokens_to_remove)
-
-for i in numpy.sort(dataframe_emails['grouped_From'].unique()):
+for i in numpy.sort(dataframe_emails['Indexed sender'].unique()):
     print(i)
-    print(dataframe_emails[dataframe_emails['grouped_From'] == i]['From'])
+    print(dataframe_emails[dataframe_emails['Indexed sender'] == i]['From'])
     print('')
 
 
@@ -140,9 +132,3 @@ for i in numpy.sort(dataframe_emails['grouped_From'].unique()):
 # #     print('pattern ' + str(i))
 # #     print(temp.head(n = 10))
 # #     print('')
-
-
-
-
-
-

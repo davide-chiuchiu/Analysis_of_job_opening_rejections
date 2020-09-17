@@ -28,8 +28,29 @@ def plot_email_type_distribution(dataframe_emails):
     
     return email_type_distribution_figure
 
+
+
+
 """
-This functino usese the word_frequencies_dataframe containing the word frequencis 
+This function plots the distribution of email length based on email types from 
+the emails in dataframe_email
+"""
+def plot_email_lengths_distribution(dataframe_emails):
+    # create figure and axis
+    email_length_distribution_figure, email_length_distribution_axis = matplotlib.pyplot.subplots()
+    # plot boxplots with seaborn
+    seaborn.boxplot(x = 'Sentences count', y = 'Email_type', data = dataframe_emails)
+    # save figure in the Latex_summary_report folder
+    plot_destination_file = os.path.dirname(os.getcwd()) + '/Latex_summary_report/message_length_distribution.eps'
+    email_length_distribution_figure.savefig(plot_destination_file, format='eps')
+
+    return(email_length_distribution_figure)
+
+
+
+
+"""
+This function usese the word_frequencies_dataframe containing the word frequencis 
 for each email type, to build and save the wordclouds of the keywords in each
 email type.  
 """

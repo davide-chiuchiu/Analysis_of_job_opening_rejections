@@ -14,29 +14,17 @@ import nltk
 import re
 import sklearn
 import sklearn.cluster
-import string
-
-
-
+import pandas
 
 """
-This wrapper builds the tfidf_embedded_corpus matrix with the corresponding 
-embedding_labels and embedder object from the collection of strings stored 
-at column_label in dataframe. The function preprocess the  collection of 
-strings by removing stopwords, punctuation and extra_tokens_to_remove
+this function uses nltk features to returns the word frequencies from the corpus
+stored as a series of documents in corpus_as_series
 """
-def build_tfidf_embedding_from_dataframe(dataframe, column_label, extra_tokens_to_remove = None, ngram_range = (1,1), remove_numbers = True):
-    # create corpus by removing removing stopwords, punctuation symbols and extra_tokens_to_remove
-    corpus = dataframe.apply(lambda x: preprocess_corpus(x[column_label], extra_tokens_to_remove, remove_numbers = remove_numbers) , axis = 1).tolist()
-    
-    # build tfidf vectorizer object from function  
-    tfidf_vectorizer = build_tfidf_embedding_from_corpus(corpus, ngram_range = ngram_range)
-
-    # extract tfidf embedding as sparse matrix, and extract embedding labels
-    tfidf_embedded_corpus = tfidf_vectorizer.transform(corpus)
-    embedding_labels = tfidf_vectorizer.get_feature_names()
-
-    return tfidf_embedded_corpus, embedding_labels, tfidf_vectorizer
+def compute_word_frequencies(corpus_as_series):
+    corpus_condensed_as_string = corpus_as_series.str.cat(sep = ' ')
+    tokenized_corpus = nltk.tokenize.word_tokenize(corpus_condensed_as_string)
+    word_frequencies = nltk.probability.FreqDist(tokenized_corpus)
+    return word_frequencies
 
 
 
@@ -72,6 +60,29 @@ def preprocess_corpus(text, extra_tokens_to_remove = None, remove_numbers = True
 
 
 """
+This wrapper builds the tfidf_embedded_corpus matrix with the corresponding 
+embedding_labels and embedder object from the collection of strings stored 
+at column_label in dataframe. The function preprocess the  collection of 
+strings by removing stopwords, punctuation and extra_tokens_to_remove
+"""
+def build_tfidf_embedding_from_dataframe(dataframe, column_label, extra_tokens_to_remove = None, ngram_range = (1,1), remove_numbers = True):
+    # create corpus by removing removing stopwords, punctuation symbols and extra_tokens_to_remove
+    corpus = dataframe.apply(lambda x: preprocess_corpus(x[column_label], extra_tokens_to_remove, remove_numbers = remove_numbers) , axis = 1).tolist()
+    
+    # build tfidf vectorizer object from function  
+    tfidf_vectorizer = build_tfidf_embedding_from_corpus(corpus, ngram_range = ngram_range)
+
+    # extract tfidf embedding as sparse matrix, and extract embedding labels
+    tfidf_embedded_corpus = tfidf_vectorizer.transform(corpus)
+    embedding_labels = tfidf_vectorizer.get_feature_names()
+
+    return tfidf_embedded_corpus, embedding_labels, tfidf_vectorizer
+
+
+
+
+
+"""
 This function performs the tfidf embedding of a corpus using ngrams in ngram_range
 and then it returns the tfidf embedder object.
 """
@@ -83,11 +94,26 @@ def build_tfidf_embedding_from_corpus(corpus, ngram_range = (1,1)):
     return tfidf_vectorizer
 
 
+
+
 """
-This function uses the  CountVectorizer object word_counter to find the 20 most
-important keywords in corpus. 
+This function uses the tfidf embedding of corpus to compute an automated 
+list of buzzwords in the corpus. By definition, a word classify as buzzword if 
+its ifd is in the buzzword_quantile_treshold quantile.
 """
-def find_keywords(corpus, word_counter):
-    word_counter.fit_transform(corpus)
+def identify_custom_buzzwords(corpus, buzzword_quantile_treshold):
+    # build tfidf embedding of corpus
+    tfidf_corpus_embedding = build_tfidf_embedding_from_corpus(corpus, ngram_range = (1,1))
+    # store tfidf vocabulary as dataframe with the corresponding idf
+    tfidf_corpus_embedding_dataframe = pandas.DataFrame.from_dict(tfidf_corpus_embedding.vocabulary_, orient = 'index', columns = ['word index']).sort_values('word index')
+    tfidf_corpus_embedding_dataframe['idf'] = tfidf_corpus_embedding.idf_
+
+    # identify buzzwords as the ones in the buzzword_quantile_treshold quantile
+    buzzword_idf_cutoff = tfidf_corpus_embedding_dataframe['idf'].quantile(buzzword_quantile_treshold)
+    custom_buzzwords = sorted(tfidf_corpus_embedding_dataframe[tfidf_corpus_embedding_dataframe['idf'].between(0, buzzword_idf_cutoff)].index)
     
-    return list(word_counter.vocabulary_.keys())[0:20]
+    # list of next possible buzzwords
+    other_buzzword_idf_cutoff = tfidf_corpus_embedding_dataframe['idf'].quantile(2 * buzzword_quantile_treshold)
+    other_custom_buzzwords = sorted(tfidf_corpus_embedding_dataframe[tfidf_corpus_embedding_dataframe['idf'].between(0, other_buzzword_idf_cutoff)].index)
+    
+    return custom_buzzwords, other_custom_buzzwords
