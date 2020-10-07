@@ -17,7 +17,6 @@ import os
 import sklearn
 import sklearn.ensemble
 import imblearn
-import pandas
 
 
 
@@ -64,11 +63,42 @@ buzzwords = define_buzzwords_for_From_field(dataframe_emails['Processed sender a
 # cluster emails together based on the sender and subject information
 dataframe_emails['Indexed sender'] = cluster_emails_by_From(dataframe_emails, 0.5, method = "average", extra_tokens_to_remove = buzzwords)
 
+# clustering is far from perfect with these parameter choices for the cluster
+# and the height to cut the tree, but decent enough.
 for i in numpy.sort(dataframe_emails['Indexed sender'].unique()):
     print(i)
     print(dataframe_emails[dataframe_emails['Indexed sender'] == i]['From'])
     print('')
 
+# find number of emails and the date of the first email
+# within emails from the same cluster and same email type
+aggregated_date_email_number_info = dataframe_emails\
+    .groupby(['Indexed sender', 'Email_type'])\
+    .agg(first_email_date = ('Date', min), email_counts = ('Date', len))\
+    .reset_index()
+
+# find indexed senders that hace 
+list_of_sender_clusters_with_reception_email = aggregated_date_email_number_info[aggregated_date_email_number_info['Email_type'] == 'Received']['Indexed sender'].unique()
+list_of_sender_clusters_with_rejection_email = aggregated_date_email_number_info[aggregated_date_email_number_info['Email_type'] == 'Rejected']['Indexed sender'].unique()
+list_of_sender_cluster_with_reception_and_rejection_email = list(set(list_of_sender_clusters_with_reception_email) & set(list_of_sender_clusters_with_rejection_email))
+
+# select aggregated informations only for groups in list_of_sender_cluster_with_reception_and_rejection_email
+# and reshape the dataframe
+filtered_aggregated_date_email_number_info = aggregated_date_email_number_info[aggregated_date_email_number_info['Indexed sender'].isin(list_of_sender_cluster_with_reception_and_rejection_email)] \
+    .drop(columns = 'email_counts') \
+    .pivot(index = 'Indexed sender', columns = 'Email_type', values = 'first_email_date')
+
+
+
+
+# find groups with rejection emails.
+indexed_senders_with_rejection_emails = numpy.sort(dataframe_emails[dataframe_emails['Email_type'] == 'Rejected']['Indexed sender'].unique())
+dataframe_emails_with_rejections = dataframe_emails[dataframe_emails['Indexed sender'].isin(indexed_senders_with_rejection_emails)]
+date_of_first_email_by_sender_and_type = dataframe_emails_with_rejections\
+    .groupby(['Indexed sender', 'Email_type'])\
+    .apply(lambda x: min(x['Date']))\
+    .reset_index(name = 'Date')\
+    .pivot(index = 'Indexed sender', columns = 'Email_type', values = 'Date')
 
 
 
