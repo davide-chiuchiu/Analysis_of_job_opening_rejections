@@ -76,5 +76,7 @@ def build_email_dataframe(downloaded_emails_path):
     # Combine email sendes and email subject into one and then preprocess text
     dataframe_emails['Processed sender and subject'] = dataframe_emails.apply(lambda x: preprocess_corpus(x['From'] + ' ' + x['Subject']) , axis = 1)
     
+    # Cast dates as datetime objects and not as the native format from email parsers
+    dataframe_emails['Date'] = dataframe_emails['Date'].apply(lambda x: x.datetime.date())
  
     return dataframe_emails

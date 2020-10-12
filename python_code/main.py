@@ -30,7 +30,7 @@ from build_email_dataframe import build_email_dataframe
 from cluster_emails_by_From import cluster_emails_by_From, define_buzzwords_for_From_field
 from text_utilities import compute_word_frequencies
 from plots import plot_email_type_distribution, plot_email_lengths_distribution
-from plots import save_keyword_wordclouds_of_email_types
+from plots import save_keyword_wordclouds_of_email_types, plot_boxplot_of_days_to_reject_distribution
 # build dataframe of emails from database of stored emails. The building procedure 
 # remove numbers, and it stems the email bodies after tokenization
 downloaded_emails_path = os.path.dirname(os.getcwd()) + '/downloaded_emails'
@@ -88,17 +88,13 @@ filtered_aggregated_date_email_number_info = aggregated_date_email_number_info[a
     .drop(columns = 'email_counts') \
     .pivot(index = 'Indexed sender', columns = 'Email_type', values = 'first_email_date')
 
+# compute days time it takes to reject and filter aout anomalies where 
+# the day count is negative
+days_to_reject = filtered_aggregated_date_email_number_info.apply(lambda x: (x['Rejected'] - x['Received']).days, axis = 1 ).rename("Days before rejection")
+days_to_reject = days_to_reject[days_to_reject > 0]
 
 
-
-# find groups with rejection emails.
-indexed_senders_with_rejection_emails = numpy.sort(dataframe_emails[dataframe_emails['Email_type'] == 'Rejected']['Indexed sender'].unique())
-dataframe_emails_with_rejections = dataframe_emails[dataframe_emails['Indexed sender'].isin(indexed_senders_with_rejection_emails)]
-date_of_first_email_by_sender_and_type = dataframe_emails_with_rejections\
-    .groupby(['Indexed sender', 'Email_type'])\
-    .apply(lambda x: min(x['Date']))\
-    .reset_index(name = 'Date')\
-    .pivot(index = 'Indexed sender', columns = 'Email_type', values = 'Date')
+plot_boxplot_of_days_to_reject_distribution(days_to_reject)
 
 
 

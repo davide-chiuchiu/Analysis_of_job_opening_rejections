@@ -70,3 +70,20 @@ def save_keyword_wordclouds_of_email_types(word_frequencies_dataframe):
         wordcloud_figure.savefig(plot_destination_file, format = 'png', dpi = 300)
     
     return 
+
+
+
+
+
+"""
+This function uses the information from the days_to_reject series to plot the
+boxplot of the days it takes to have a candidacy rejected
+"""
+def plot_boxplot_of_days_to_reject_distribution(days_to_reject):
+    # create figure and axis
+    rejection_time_distribution_figure, rejedction_time_distribution_axis = matplotlib.pyplot.subplots()
+    # plot boxplot
+    seaborn.boxplot(x = days_to_reject)
+    # save figure in the Latex_summary_report file
+    plot_destination_file = os.path.dirname(os.getcwd()) + '/Latex_summary_report/days_to_reject_distribution.eps'
+    rejection_time_distribution_figure.savefig(plot_destination_file, format='eps')
