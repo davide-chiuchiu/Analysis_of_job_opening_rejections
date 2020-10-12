@@ -54,12 +54,9 @@ grouped_dataframe_emails = dataframe_emails.groupby('Email_type')
 word_frequencies_dataframe = grouped_dataframe_emails.apply(lambda x: compute_word_frequencies(x['Stemmed Body']))
 save_keyword_wordclouds_of_email_types(word_frequencies_dataframe)
 
-"""
-Identify distribution of rejection time
-"""
-# build buzzwords from automated routines and educated guesses in extra_buzzword_guess
+# compute the distribution of days it takes for a candidacy to be rejected
 extra_buzzwords_guess = ['car', 'hir', 'jobvit', 'lev', 'system', 'successfact', 'team']
-days_to_reject = compute_rejection_days(dataframe_emails, extra_buzzwords_guess = extra_buzzwords_guess)
+days_to_reject = compute_rejection_days(dataframe_emails, extra_buzzwords = extra_buzzwords_guess)
 plot_boxplot_of_days_to_reject_distribution(days_to_reject)
 
 

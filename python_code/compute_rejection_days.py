@@ -14,8 +14,8 @@ and the candidacy rejection.
 from cluster_emails_by_From import cluster_emails_by_From, define_buzzwords_for_From_field
 
 
-def compute_rejection_days(dataframe_emails, extra_buzzwords_guess = []):
-    buzzwords = define_buzzwords_for_From_field(dataframe_emails['Processed sender and subject'], extra_buzzwords = extra_buzzwords_guess)
+def compute_rejection_days(dataframe_emails, extra_buzzwords = []):
+    buzzwords = define_buzzwords_for_From_field(dataframe_emails['Processed sender and subject'], extra_buzzwords = extra_buzzwords)
     # cluster emails together based on the sender and subject information
     dataframe_emails['Indexed sender'] = cluster_emails_by_From(dataframe_emails, 0.5, method = "average", extra_tokens_to_remove = buzzwords)
 
@@ -43,7 +43,7 @@ def compute_rejection_days(dataframe_emails, extra_buzzwords_guess = []):
 
     # compute days time it takes to reject and filter out anomalies where 
     # the day count is negative
-    days_to_reject = filtered_aggregated_date_email_number_info.apply(lambda x: (x['Rejected'] - x['Received']).days, axis = 1 ).rename("Days before rejection")
+    days_to_reject = filtered_aggregated_date_email_number_info.apply(lambda x: (x['Rejected'] - x['Received']).days, axis = 1 ).rename("Days before a candidacy is rejected")
     days_to_reject = days_to_reject[days_to_reject > 0]
 
     return days_to_reject

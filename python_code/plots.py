@@ -84,6 +84,7 @@ def plot_boxplot_of_days_to_reject_distribution(days_to_reject):
     rejection_time_distribution_figure, rejedction_time_distribution_axis = matplotlib.pyplot.subplots()
     # plot boxplot
     seaborn.boxplot(x = days_to_reject)
+    rejedction_time_distribution_axis.set_xticks([i for i in range(0, 90, 10)])
     # save figure in the Latex_summary_report file
     plot_destination_file = os.path.dirname(os.getcwd()) + '/Latex_summary_report/days_to_reject_distribution.eps'
     rejection_time_distribution_figure.savefig(plot_destination_file, format='eps')
