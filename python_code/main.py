@@ -59,6 +59,17 @@ extra_buzzwords_guess = ['car', 'hir', 'jobvit', 'lev', 'system', 'successfact',
 days_to_reject = compute_rejection_days(dataframe_emails, extra_buzzwords = extra_buzzwords_guess)
 plot_boxplot_of_days_to_reject_distribution(days_to_reject)
 
+# identify companies that reject in less than 10 days. 
+indexed_fast_rejecters = days_to_reject[days_to_reject <= days_to_reject.quantile(0.5)].index.to_list()
+fast_rejecters = dataframe_emails[dataframe_emails['Indexed sender'].isin(indexed_fast_rejecters)]['Processed sender and subject']
+
+indexed_moderate_rejecters = days_to_reject[(days_to_reject > days_to_reject.quantile(0.5)) & (days_to_reject <= days_to_reject.quantile(0.75))].index.to_list()
+moderate_rejecters = dataframe_emails[dataframe_emails['Indexed sender'].isin(indexed_moderate_rejecters)]['Processed sender and subject']
+
+indexed_slow_rejecters = days_to_reject[days_to_reject > days_to_reject.quantile(0.75)].index.to_list()
+slow_rejecters = dataframe_emails[dataframe_emails['Indexed sender'].isin(indexed_slow_rejecters)]['Processed sender and subject']
+
+
 
 
 # """
