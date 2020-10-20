@@ -13,11 +13,6 @@ rejections. To this end, it loads the email in the downloaded_emails folder
 # import all the relevant libraries 
 import nltk
 import os 
-import sklearn
-import sklearn.ensemble
-import imblearn
-
-
 
 
 # set current work directory to the one with this script.
