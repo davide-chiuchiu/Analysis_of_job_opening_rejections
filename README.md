@@ -1,3 +1,3 @@
 Analysis_of_job_opening_rejections
 
-WIth this project I want to analyze the emails where I got job rejections with python and NLP techniques. This is also a chance to learn how to work with .eml files and email parsers.
+With this project I analyzed the emails where I got job rejections with python and NLP. From this analysis I found out that emails where companies reject a candidacy and the emails where companies acknowledge a submitted candidacy have the same length, but use different keywords. I also found out that larger companies tend to reject candidacies faster than small-to-medium enterprises (10 days and 20 days respectively).
